@@ -22,6 +22,8 @@ func mockingServer() *httptest.Server {
 			rToken := r.URL.Query().Get("token")
 			if rToken == token {
 				fmt.Fprintf(w, "true")
+			} else {
+				fmt.Fprintf(w, "false")
 			}
 		}
 	}))
@@ -67,9 +69,10 @@ func TestSPTrans_Auth(t *testing.T) {
 	mockBasePath := mockingServer().URL
 
 	tests := []struct {
-		name   string
-		fields fields
-		want   bool
+		name    string
+		fields  fields
+		want    bool
+		wantErr bool
 	}{
 		{
 			name: "Autenticando corretamente na API da SPTrans",
@@ -77,7 +80,17 @@ func TestSPTrans_Auth(t *testing.T) {
 				BasePath: mockBasePath,
 				Token:    token,
 			},
-			want: true,
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Passando um Token invalido",
+			fields: fields{
+				BasePath: mockBasePath,
+				Token:    "tokenerradodeproposito",
+			},
+			want:    false,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -86,7 +99,12 @@ func TestSPTrans_Auth(t *testing.T) {
 				BasePath: tt.fields.BasePath,
 				Token:    tt.fields.Token,
 			}
-			if got := sp.Auth(); got != tt.want {
+			got, err := sp.Auth()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SPTrans.Auth() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
 				t.Errorf("SPTrans.Auth() = %v, want %v", got, tt.want)
 			}
 		})
