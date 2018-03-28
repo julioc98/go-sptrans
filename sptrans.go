@@ -35,7 +35,7 @@ func (sp *SPTrans) Auth() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if strings.Trim(string(body), "/r/n") == "true" {
+	if strings.Trim(string(body), "\r\n") == "true" {
 		return true, nil
 	}
 	return false, nil
